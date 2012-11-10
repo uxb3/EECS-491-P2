@@ -59,6 +59,16 @@ public class LearningUnit {
 		// follow current policy
 		return null;
 	}
+	
+	private double calcJ(StateView s, HistoryView log, TargetedAction a, int playerNum)
+	{
+		double j = weights[weights.length-1];
+		for (int i = 0; i < features.size(); i++)
+		{
+			j += features.get(i).calculate(s, log, a, playerNum) * weights[i];
+		}
+		return j;
+	}
 
 	//ranking of the enemy being attacked in terms of how close the enemy is
 	private static class IsClosestEnemy implements Feature
