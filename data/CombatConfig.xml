@@ -18,7 +18,7 @@
 	</Player>
 	<Player Id="1">
 		<AgentClass>
-			<ClassName>CombatAgent</ClassName>
+			<ClassName>edu.cwru.sepia.agent.CombatAgent</ClassName>
 			<Argument>0</Argument>
 			<Argument>true</Argument>
 			<Argument>false</Argument>
