@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cwru.sepia.action.Action;
+import edu.cwru.sepia.action.TargetedAction;
 import edu.cwru.sepia.environment.model.history.History.HistoryView;
 import edu.cwru.sepia.environment.model.state.State;
 import edu.cwru.sepia.environment.model.state.State.StateView;
@@ -57,11 +58,12 @@ public class LearningUnit {
 		return null;
 	}
 
+	//ranking of the enemy being attacked in terms of how 
 	private static class IsClosestEnemy implements Feature
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -72,7 +74,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -83,7 +85,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -94,7 +96,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -105,7 +107,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -116,7 +118,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
@@ -127,7 +129,7 @@ public class LearningUnit {
 	{
 
 		@Override
-		public double calculate(StateView s, HistoryView log, Action a) {
+		public double calculate(StateView s, HistoryView log, TargetedAction a) {
 			// TODO Auto-generated method stub
 			return 0;
 		}
