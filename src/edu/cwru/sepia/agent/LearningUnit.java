@@ -54,15 +54,34 @@ public class LearningUnit {
 		return 0.0;
 	}
 	
-	public Action getAction(StateView state)
+	public Action getAction(StateView s, HistoryView log, int playerNum)
 	{
-		// follow current policy
-		return null;
+		double maxJ = -10000;
+		TargetedAction maxAct = null;
+		
+		for (Integer i:s.getPlayerNumbers())
+		{
+			if (i != playerNum)
+			{
+				for(UnitView enemy:s.getUnits(i))
+				{
+					TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
+					double j = calcJ(s, log, act, playerNum);
+					if (j > maxJ)
+					{
+						maxJ = j;
+						maxAct = act;
+					}
+				}
+			}
+		}
+		
+		return maxAct;
 	}
 	
 	private double calcJ(StateView s, HistoryView log, TargetedAction a, int playerNum)
 	{
-		double j = weights[weights.length-1];
+		double j = weights[weights.length-1]; 
 		for (int i = 0; i < features.size(); i++)
 		{
 			j += features.get(i).calculate(s, log, a, playerNum) * weights[i];
@@ -86,13 +105,16 @@ public class LearningUnit {
 			
 			for (Integer i:s.getPlayerNumbers())
 			{
-				for(UnitView enemy:s.getUnits(i))
+				if (i != playerNum)
 				{
-					if (enemy.getID() != targetID);
+					for(UnitView enemy:s.getUnits(i))
 					{
-						if (distance(current.getXPosition(), current.getYPosition(), enemy.getXPosition(), enemy.getYPosition()) < targetDistance)
+						if (enemy.getID() != targetID);
 						{
-							rank++;
+							if (distance(current.getXPosition(), current.getYPosition(), enemy.getXPosition(), enemy.getYPosition()) < targetDistance)
+							{
+								rank++;
+							}
 						}
 					}
 				}
@@ -167,14 +189,17 @@ public class LearningUnit {
 			
 			for (Integer i:s.getPlayerNumbers())
 			{
-				for(UnitView enemy:s.getUnits(i))
+				if (i != playerNum)
 				{
-					if (enemy.getTemplateView().getName().equals("ScoutTower"));
+					for(UnitView enemy:s.getUnits(i))
 					{
-						int dist = distance(currentX, currentY, enemy.getXPosition(), enemy.getYPosition());
-						if (dist < minDist)
+						if (enemy.getTemplateView().getName().equals("ScoutTower"));
 						{
-							minDist = dist;
+							int dist = distance(currentX, currentY, enemy.getXPosition(), enemy.getYPosition());
+							if (dist < minDist)
+							{
+								minDist = dist;
+							}
 						}
 					}
 				}
