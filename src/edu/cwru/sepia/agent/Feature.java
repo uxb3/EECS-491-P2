@@ -6,6 +6,6 @@ import edu.cwru.sepia.environment.model.state.State.StateView;
 
 public interface Feature {
 	
-	public double calculate(StateView s, HistoryView log, TargetedAction a);
+	public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum);
 
 }
