@@ -17,8 +17,10 @@ public class LearningUnit {
 	
 	final double alpha = .1; // learning rate
 	final double beta = .1; 
+	
+	double temperature;
 
-	double e = 0; // eligibility trace
+	double[] e; // eligibility trace
 	
 	List<Feature> features;
 	double[] weights;
@@ -40,25 +42,34 @@ public class LearningUnit {
 		features.add(new ClosestBallistaDistance());
 		
 		weights = new double[features.size() + 1];
+		
+		e = new double[features.size()];
+		
+		temperature = 10;
 	}
 	
 	public void updateWeights(double reward)
 	{
 		// theta + alpha * reward * e
 		e = calculateE();
+		for (int i = 0; i < e.length; i++)
+		{
+			weights[i] += alpha * reward * e[i];
+		}
 	}
 	
-	private double calculateE()
+	private double[] calculateE()
 	{
 		// beta*e + grad log Pr(a | s, theta)
-		return 0.0;
+		return new double[1];
 	}
 	
 	public Action getAction(StateView s, HistoryView log, int playerNum)
 	{
-		double maxJ = -10000;
-		TargetedAction maxAct = null;
+		TargetedAction chosenAction;
 		
+		List<Tuple<TargetedAction,Double>> actions = new LinkedList<Tuple<TargetedAction,Double>>();
+		double valueSum = 0;
 		for (Integer i:s.getPlayerNumbers())
 		{
 			if (i != playerNum)
@@ -66,17 +77,33 @@ public class LearningUnit {
 				for(UnitView enemy:s.getUnits(i))
 				{
 					TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
-					double j = calcJ(s, log, act, playerNum);
-					if (j > maxJ)
-					{
-						maxJ = j;
-						maxAct = act;
-					}
+					double j = Math.exp((calcJ(s, log, act, playerNum)/temperature));
+					Tuple<TargetedAction, Double> actValue = new Tuple<TargetedAction, Double>(act,j);
+					actions.add(actValue);
+					valueSum += j;
 				}
 			}
 		}
+		for (Tuple<TargetedAction, Double> t:actions)
+		{
+			t.second = t.second/valueSum;
+		}
 		
-		return maxAct;
+		double rand = Math.random();
+		
+		for (Tuple<TargetedAction, Double> t:actions)
+		{
+			if (t.second<rand)
+			{
+				rand -= t.second;
+			}
+			else
+			{
+				return t.first;
+			}
+		}
+		
+		return actions.get(actions.size()-1).first;
 	}
 	
 	private double calcJ(StateView s, HistoryView log, TargetedAction a, int playerNum)
@@ -286,4 +313,15 @@ public class LearningUnit {
 		
 	}
 
+	private class Tuple<T,R>
+	{
+		public T first;
+		public R second;
+		
+		public Tuple(T first, R second)
+		{
+			this.first = first;
+			this.second = second;
+		}
+	}
 }
