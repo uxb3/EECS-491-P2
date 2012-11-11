@@ -47,7 +47,7 @@ public class PolicyAgent extends Agent {
 		// execute the policy
 		for(LearningUnit unit : units)
 		{
-			actions.put(unit.unitId, unit.getAction(newstate));
+			actions.put(unit.unitId, unit.getAction(newstate, statehistory, playernum));
 		}
 		// check if this is a learning episode or not
 		return actions;
@@ -76,7 +76,7 @@ public class PolicyAgent extends Agent {
 				if(currUnit != null) 
 				{
 					currUnit.updateWeights(newstate, statehistory); // update the policy weights
-					actions.put(currUnit.unitId, currUnit.getAction(newstate)); // get an action for that unit
+					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum)); // get an action for that unit
 			
 				}
 			}
