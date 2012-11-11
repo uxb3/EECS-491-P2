@@ -40,7 +40,7 @@ public class LearningUnit {
 		weights = new double[features.size() + 1];
 	}
 	
-	public void updateWeights(double reward)
+	public void updateWeights(StateView state, HistoryView history)
 	{
 		// theta + alpha * reward * e
 		e = calculateE();
