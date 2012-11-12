@@ -108,7 +108,8 @@ public class PolicyAgent extends Agent {
 		{
 			for(Integer unitId : units.keySet()) // so gather the rewards
 			{
-				cumRewards[frozenGameCount] += units.get(unitId).reward;
+				cumRewards[frozenGameCount] += units.get(unitId).getReward();
+				units.get(unitId).resetReward(); // reset the reward for the next episode
 			}
 			frozenGameCount++;
 		}

@@ -66,10 +66,10 @@ public class LearningUnit {
 		reward = 0;
 	}
 	
-	public void updateReward(StateView state, HistoryView history, int step)
+	public void updateReward(StateView state, HistoryView history)
 	{
-		List<DamageLog> damage = history.getDamageLogs(step);
-		List<DeathLog> death = history.getDeathLogs(step);
+		List<DamageLog> damage = history.getDamageLogs(state.getTurnNumber());
+		List<DeathLog> death = history.getDeathLogs(state.getTurnNumber());
 		
 		int targetID = -1;
 		if (currentAction != null)
@@ -105,6 +105,11 @@ public class LearningUnit {
 	public double getReward()
 	{
 		return reward;
+	}
+	
+	public void resetReward()
+	{
+		reward = 0;
 	}
 	
 	public Action getAction(StateView s, HistoryView log, int playerNum)
