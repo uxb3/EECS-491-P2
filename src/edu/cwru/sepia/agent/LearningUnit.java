@@ -188,6 +188,13 @@ public class LearningUnit {
 		}
 		return j;
 	}
+	
+	public List<Tuple<TargetedAction, Double>> calcJTable(StateView s, HistoryView log, int playerNum)
+	{
+		List<Tuple<TargetedAction, Double>> jTable = new ArrayList<Tuple<TargetedAction, Double>>();
+		
+		return jTable;
+	}
 
 	//ranking of the enemy being attacked in terms of how close the enemy is
 	private static class IsClosestEnemy implements Feature
@@ -386,15 +393,5 @@ public class LearningUnit {
 		
 	}
 
-	private class Tuple<T,R>
-	{
-		public T first;
-		public R second;
-		
-		public Tuple(T first, R second)
-		{
-			this.first = first;
-			this.second = second;
-		}
-	}
+	
 }
