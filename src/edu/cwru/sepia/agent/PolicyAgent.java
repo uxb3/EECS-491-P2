@@ -38,10 +38,10 @@ public class PolicyAgent extends Agent {
 		fstream = new FileWriter("learningData.csv");
 		out = new BufferedWriter(fstream);
 		
-		if(args.length < 1)
+		if(args.length < 4)
 			numEpisodes = 50;
 		else
-			numEpisodes = Integer.parseInt(args[0]);
+			numEpisodes = Integer.parseInt(args[3]);
 	}
 
 	@Override
@@ -143,6 +143,7 @@ public class PolicyAgent extends Agent {
 				for(int i=0; i<cumRewards.length; i++)
 				{
 					total += cumRewards[i];
+					cumRewards[i] = 0;
 				}
 				try {
 					out.write(episodeCount + "," + total/cumRewards.length + "\n"); // save the data to a file
