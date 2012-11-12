@@ -1,10 +1,11 @@
 package edu.cwru.sepia.agent;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import edu.cwru.sepia.action.Action;
@@ -13,25 +14,34 @@ import edu.cwru.sepia.environment.model.state.State.StateView;
 
 public class PolicyAgent extends Agent {
 	
-	List<LearningUnit> units; // stores the learning units for each unit type
-	Map<Integer, LearningUnit> unitLookup; // used for quick lookup
+	Map<Integer, LearningUnit> units; // used for quick lookup
 	
 	int turnCount = 1;
 	
 	int episodeCount = 1;
 	
 	Map<Integer, Action> actions;
-
-	public PolicyAgent(int playernum, String[] args) {
+	
+	double[] cumRewards = new double[5];
+	
+	int frozenGameCount = 0; // when less than the number of slots in cumRewards units won't be updated
+	
+	FileWriter fstream;
+	BufferedWriter out;
+	
+	public PolicyAgent(int playernum, String[] args) throws IOException {
 		super(playernum);
-		units = new ArrayList<LearningUnit>();
+		units = new HashMap<Integer, LearningUnit>();
+		
+		fstream = new FileWriter("learningData.csv");
+		out = new BufferedWriter(fstream);
 	}
 
 	@Override
 	public Map<Integer, Action> initialStep(StateView newstate,
 			HistoryView statehistory) {
+		
 		actions = new HashMap<Integer, Action>();
-		unitLookup = new HashMap<Integer, LearningUnit>();
 		
 		// create the learning units 
 		if(episodeCount == 1) // only do this for the first episode
@@ -39,15 +49,14 @@ public class PolicyAgent extends Agent {
 			for(Integer unitId : newstate.getUnitIds(playernum))
 			{
 				LearningUnit myunit = new LearningUnit(unitId);
-				units.add(myunit);
-				unitLookup.put(unitId, myunit);
+				units.put(unitId, myunit);
 			}
 		}
 		
 		// execute the policy
-		for(LearningUnit unit : units)
+		for(Integer unitId : units.keySet())
 		{
-			actions.put(unit.unitId, unit.getAction(newstate, statehistory, playernum));
+			actions.put(unitId, units.get(unitId).getAction(newstate, statehistory, playernum));
 		}
 		// check if this is a learning episode or not
 		return actions;
@@ -58,9 +67,11 @@ public class PolicyAgent extends Agent {
 			HistoryView statehistory) {
 		turnCount++;
 		// update the weights
-		for(LearningUnit unit : units)
+		for(Integer unitId : units.keySet())
 		{
-			unit.updateWeights(newstate, statehistory);
+			units.get(unitId).updateReward(newstate, statehistory);
+			if(frozenGameCount >= cumRewards.length) // only update when not frozen
+				units.get(unitId).updateWeights();
 		}
 		
 		// if this is an event step
@@ -70,12 +81,11 @@ public class PolicyAgent extends Agent {
 			
 			actions = new HashMap<Integer, Action>();
 			
-			for(Integer unitID : newstate.getUnitIds(playernum)) // for all of the units still alive
+			for(Integer unitId : newstate.getUnitIds(playernum)) // for all of the units still alive
 			{
-				LearningUnit currUnit = unitLookup.get(unitID); // get the associated learning agent
+				LearningUnit currUnit = units.get(unitId); // get the associated learning agent
 				if(currUnit != null) 
 				{
-					currUnit.updateWeights(newstate, statehistory); // update the policy weights
 					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum)); // get an action for that unit
 			
 				}
@@ -93,7 +103,46 @@ public class PolicyAgent extends Agent {
 
 	@Override
 	public void terminalStep(StateView newstate, HistoryView statehistory) {
-		episodeCount++; // keep track of what episode the agent is on
+		
+		if(frozenGameCount < 5) // this is a frozen game
+		{
+			for(Integer unitId : units.keySet()) // so gather the rewards
+			{
+				cumRewards[frozenGameCount] += units.get(unitId).reward;
+			}
+			frozenGameCount++;
+		}
+		else
+		{
+			// update the agents otherwise they will miss the reward from killing the last unit
+			for(Integer unitId : units.keySet())
+			{
+				units.get(unitId).updateReward(newstate, statehistory);
+				units.get(unitId).updateWeights();
+			}
+			
+			if(episodeCount % 10 == 0) // if this is the end of a frozen game run
+			{
+				double total = 0;
+				for(int i=0; i<cumRewards.length; i++)
+				{
+					total += cumRewards[i];
+				}
+				try {
+					out.write(episodeCount + "," + total/cumRewards.length + "\n"); // save the data to a file
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			episodeCount++; // keep track of what episode the agent is on
+			
+			if(episodeCount % 10 == 0) // if the game should be frozen 
+			{
+				frozenGameCount = 0;
+			}
+		}
+		
 	}
 
 	@Override
