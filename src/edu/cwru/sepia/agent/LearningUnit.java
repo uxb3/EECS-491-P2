@@ -68,8 +68,8 @@ public class LearningUnit {
 	
 	public void updateReward(StateView state, HistoryView history)
 	{
-		List<DamageLog> damage = history.getDamageLogs(state.getTurnNumber());
-		List<DeathLog> death = history.getDeathLogs(state.getTurnNumber());
+		List<DamageLog> damage = history.getDamageLogs(state.getTurnNumber()-1);
+		List<DeathLog> death = history.getDeathLogs(state.getTurnNumber()-1);
 		
 		int targetID = -1;
 		if (currentAction != null)

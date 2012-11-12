@@ -26,7 +26,7 @@ public class PolicyAgent extends Agent {
 	
 	double[] cumRewards = new double[5];
 	
-	int frozenGameCount = 0; // when less than the number of slots in cumRewards units won't be updated
+	int frozenGameCount = 5; // when less than the number of slots in cumRewards units won't be updated
 	
 	FileWriter fstream;
 	BufferedWriter out;
@@ -47,7 +47,7 @@ public class PolicyAgent extends Agent {
 	@Override
 	public Map<Integer, Action> initialStep(StateView newstate,
 			HistoryView statehistory) {
-		
+		System.out.println("Running for " + numEpisodes);
 		if(frozenGameCount < cumRewards.length)
 			System.out.println("Executing frozen game " + (frozenGameCount + 1) +
 					           " for episode " + episodeCount);
@@ -118,6 +118,14 @@ public class PolicyAgent extends Agent {
 	@Override
 	public void terminalStep(StateView newstate, HistoryView statehistory) {
 		
+		// update the agents otherwise they will miss the reward from killing the last unit
+		for(Integer unitId: units.keySet())
+		{
+			units.get(unitId).updateReward(newstate, statehistory);
+			if(frozenGameCount >= 5)
+				units.get(unitId).updateWeights();
+		}
+		
 		if(frozenGameCount < 5) // this is a frozen game
 		{
 			for(Integer unitId : units.keySet()) // so gather the rewards
@@ -129,13 +137,6 @@ public class PolicyAgent extends Agent {
 		}
 		else
 		{
-			// update the agents otherwise they will miss the reward from killing the last unit
-			for(Integer unitId : units.keySet())
-			{
-				units.get(unitId).updateReward(newstate, statehistory);
-				units.get(unitId).updateWeights();
-			}
-			
 			if(episodeCount % 10 == 0) // if this is the end of a frozen game run
 			{
 				double total = 0;

@@ -227,6 +227,7 @@ public class CombatAgent extends edu.cwru.sepia.agent.Agent{
 	public void terminalStep(StateView newstate, History.HistoryView statehistory) {
 		//A non learning agent needn't do anything at the final step
 		lastStepMovedIn = newstate.getTurnNumber();
+		
 	}
 	
 	
