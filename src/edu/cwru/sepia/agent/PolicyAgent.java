@@ -159,6 +159,15 @@ public class PolicyAgent extends Agent {
 			
 			if(episodeCount > numEpisodes)
 			{
+				
+				// close the data file
+				try {
+					out.close();
+					fstream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 				System.out.println(episodeCount-1 + " episodes run");
 				System.exit(0);
 			}
