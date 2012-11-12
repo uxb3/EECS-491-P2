@@ -175,13 +175,15 @@ public class LearningUnit {
 			e[i] = beta*e[i] + chosenF - sumF;
 		}
 		
+		temperature *= .9;
 		currentAction = chosenAction;
 		return chosenAction;
 	}
 	
 	private double calcJ(StateView s, HistoryView log, TargetedAction a, int playerNum)
 	{
-		double j = weights[weights.length-1]; 
+		//double j = weights[weights.length-1]; 
+		double j = 0;
 		for (int i = 0; i < features.size(); i++)
 		{
 			j += features.get(i).calculate(s, log, a, playerNum) * weights[i];

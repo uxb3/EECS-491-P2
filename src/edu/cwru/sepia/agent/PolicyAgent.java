@@ -84,8 +84,6 @@ public class PolicyAgent extends Agent {
 		for(Integer unitId : units.keySet())
 		{
 			units.get(unitId).updateReward(newstate, statehistory);
-			if(frozenGameCount >= cumRewards.length) // only update when not frozen
-				units.get(unitId).updateWeights();
 		}
 		
 		// if this is an event step
@@ -95,9 +93,16 @@ public class PolicyAgent extends Agent {
 			
 			actions = new HashMap<Integer, Action>();
 			
+			for(Integer unitId : units.keySet())
+			{
+				if(frozenGameCount >= cumRewards.length) // only update when not frozen
+					units.get(unitId).updateWeights();
+			}
+			
 			for(Integer unitId : newstate.getUnitIds(playernum)) // for all of the units still alive
 			{
 				LearningUnit currUnit = units.get(unitId); // get the associated learning agent
+
 				if(currUnit != null) 
 				{
 					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum)); // get an action for that unit
@@ -188,18 +193,10 @@ public class PolicyAgent extends Agent {
 		// TODO Auto-generated method stub
 
 	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
 	
 	private boolean isEvent()
 	{
-		int eventTimeout = 10; // max number of turns before new "event"
+		int eventTimeout = 5; // max number of turns before new "event"
 		
 		if(turnCount % eventTimeout == 0)
 			return true;

@@ -821,7 +821,7 @@
         <ID>1</ID>
         <unit>
             <ID>6</ID>
-            <currentHealth>100</currentHealth>
+            <currentHealth>200</currentHealth>
             <xPosition>7</xPosition>
             <yPosition>9</yPosition>
             <templateID>58</templateID>
@@ -830,7 +830,7 @@
         </unit>
         <unit>
             <ID>7</ID>
-            <currentHealth>100</currentHealth>
+            <currentHealth>200</currentHealth>
             <xPosition>8</xPosition>
             <yPosition>10</yPosition>
             <templateID>58</templateID>
@@ -839,7 +839,7 @@
         </unit>
         <unit>
             <ID>8</ID>
-            <currentHealth>100</currentHealth>
+            <currentHealth>200</currentHealth>
             <xPosition>7</xPosition>
             <yPosition>10</yPosition>
             <templateID>58</templateID>
@@ -848,7 +848,7 @@
         </unit>
         <unit>
             <ID>9</ID>
-            <currentHealth>40</currentHealth>
+            <currentHealth>80</currentHealth>
             <xPosition>5</xPosition>
             <yPosition>10</yPosition>
             <templateID>55</templateID>
@@ -857,7 +857,7 @@
         </unit>
         <unit>
             <ID>10</ID>
-            <currentHealth>40</currentHealth>
+            <currentHealth>80</currentHealth>
             <xPosition>7</xPosition>
             <yPosition>12</yPosition>
             <templateID>55</templateID>
@@ -866,7 +866,7 @@
         </unit>
         <unit>
             <ID>11</ID>
-            <currentHealth>20</currentHealth>
+            <currentHealth>40</currentHealth>
             <xPosition>5</xPosition>
             <yPosition>11</yPosition>
             <templateID>35</templateID>
@@ -875,7 +875,7 @@
         </unit>
         <unit>
             <ID>12</ID>
-            <currentHealth>20</currentHealth>
+            <currentHealth>40</currentHealth>
             <xPosition>6</xPosition>
             <yPosition>12</yPosition>
             <templateID>35</templateID>
