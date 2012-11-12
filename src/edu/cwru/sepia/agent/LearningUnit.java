@@ -19,6 +19,7 @@ public class LearningUnit {
 	final double beta = .1; 
 	
 	double temperature;
+	double reward;
 
 	double[] e; // eligibility trace
 	
@@ -48,25 +49,24 @@ public class LearningUnit {
 		temperature = 10;
 	}
 	
-	public void updateWeights(StateView state, HistoryView history)
+	public void updateWeights()
 	{
 		// theta + alpha * reward * e
-		e = calculateE();
 		for (int i = 0; i < e.length; i++)
 		{
 			weights[i] += alpha * reward * e[i];
 		}
+		reward = 0;
 	}
 	
-	private double[] calculateE()
+	public void updateReward(StateView state, HistoryView history)
 	{
-		// beta*e + grad log Pr(a | s, theta)
-		return new double[1];
+		//TODO
 	}
 	
 	public Action getAction(StateView s, HistoryView log, int playerNum)
 	{
-		TargetedAction chosenAction;
+		TargetedAction chosenAction = null;
 		
 		List<Tuple<TargetedAction,Double>> actions = new LinkedList<Tuple<TargetedAction,Double>>();
 		double valueSum = 0;
@@ -99,11 +99,35 @@ public class LearningUnit {
 			}
 			else
 			{
-				return t.first;
+				chosenAction = t.first;
+				break;
 			}
 		}
 		
-		return actions.get(actions.size()-1).first;
+		if (chosenAction == null)
+		{
+			chosenAction = actions.get(actions.size()-1).first;
+		}
+		
+		for (int i = 0; i < features.size(); i++)
+		{
+			double chosenF = 0;
+			double sumF = 0;
+			
+			for (Tuple<TargetedAction, Double> t:actions)
+			{
+				double F = features.get(i).calculate(s, log, t.first, playerNum);
+				if (t.first == chosenAction)
+				{
+					chosenF = F;
+				}
+				sumF += t.second*F;
+			}
+			
+			e[i] = beta*e[i] + chosenF - sumF;
+		}
+		
+		return chosenAction;
 	}
 	
 	private double calcJ(StateView s, HistoryView log, TargetedAction a, int playerNum)
