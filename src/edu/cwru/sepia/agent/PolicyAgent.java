@@ -184,14 +184,10 @@ public class PolicyAgent extends Agent {
 
 	@Override
 	public void savePlayerData(OutputStream os) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void loadPlayerData(InputStream is) {
-		// TODO Auto-generated method stub
-
 	}
 	
 	private boolean isEvent()
