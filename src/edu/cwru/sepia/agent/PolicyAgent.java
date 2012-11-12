@@ -20,6 +20,8 @@ public class PolicyAgent extends Agent {
 	
 	int episodeCount = 1;
 	
+	int numEpisodes;
+	
 	Map<Integer, Action> actions;
 	
 	double[] cumRewards = new double[5];
@@ -35,11 +37,23 @@ public class PolicyAgent extends Agent {
 		
 		fstream = new FileWriter("learningData.csv");
 		out = new BufferedWriter(fstream);
+		
+		if(args.length < 1)
+			numEpisodes = 50;
+		else
+			numEpisodes = Integer.parseInt(args[0]);
 	}
 
 	@Override
 	public Map<Integer, Action> initialStep(StateView newstate,
 			HistoryView statehistory) {
+		
+		if(frozenGameCount < cumRewards.length)
+			System.out.println("Executing frozen game " + (frozenGameCount + 1) +
+					           " for episode " + episodeCount);
+		else
+			System.out.println("Running episode " + episodeCount);
+		
 		
 		actions = new HashMap<Integer, Action>();
 		
@@ -141,6 +155,12 @@ public class PolicyAgent extends Agent {
 			if(episodeCount % 10 == 0) // if the game should be frozen 
 			{
 				frozenGameCount = 0;
+			}
+			
+			if(episodeCount > numEpisodes)
+			{
+				System.out.println(episodeCount-1 + " episodes run");
+				System.exit(0);
 			}
 		}
 		
