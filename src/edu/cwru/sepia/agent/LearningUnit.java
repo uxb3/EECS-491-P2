@@ -6,6 +6,8 @@ import java.util.List;
 
 import edu.cwru.sepia.action.Action;
 import edu.cwru.sepia.action.TargetedAction;
+import edu.cwru.sepia.environment.model.history.DamageLog;
+import edu.cwru.sepia.environment.model.history.DeathLog;
 import edu.cwru.sepia.environment.model.history.History.HistoryView;
 import edu.cwru.sepia.environment.model.state.State;
 import edu.cwru.sepia.environment.model.state.State.StateView;
@@ -15,16 +17,17 @@ public class LearningUnit {
 	
 	public final int unitId;
 	
-	final double alpha = .1; // learning rate
-	final double beta = .1; 
+	final double alpha = .001; // learning rate
+	final double beta = .5; 
 	
-	double temperature;
-	double reward;
-
-	double[] e; // eligibility trace
+	private double temperature;
+	private double reward;
+	private double[] e; // eligibility trace
 	
-	List<Feature> features;
-	double[] weights;
+	private TargetedAction currentAction = null;
+	
+	private List<Feature> features;
+	private double[] weights;
 	
 	
 	public LearningUnit(int unitId)
@@ -43,6 +46,10 @@ public class LearningUnit {
 		features.add(new ClosestBallistaDistance());
 		
 		weights = new double[features.size() + 1];
+		for (int i = 0; i < weights.length; i++)
+		{
+			weights[i] = Math.random()*2 - 1;
+		}
 		
 		e = new double[features.size()];
 		
@@ -54,14 +61,50 @@ public class LearningUnit {
 		// theta + alpha * reward * e
 		for (int i = 0; i < e.length; i++)
 		{
-			weights[i] += alpha * reward * e[i];
+			weights[i] += alpha * (reward-0.1) * e[i];
 		}
 		reward = 0;
 	}
 	
-	public void updateReward(StateView state, HistoryView history)
+	public void updateReward(StateView state, HistoryView history, int step)
 	{
-		//TODO
+		List<DamageLog> damage = history.getDamageLogs(step);
+		List<DeathLog> death = history.getDeathLogs(step);
+		
+		int targetID = -1;
+		if (currentAction != null)
+		{
+			targetID = currentAction.getTargetId();
+		}
+		
+		for (DamageLog log:damage)
+		{
+			if (log.getAttackerID() == unitId)
+			{
+				reward += log.getDamage();
+			}
+			else if (log.getDefenderID() == unitId)
+			{
+				reward -= log.getDamage();
+			}
+		}
+		
+		for (DeathLog log:death)
+		{
+			if (log.getDeadUnitID() == unitId)
+			{
+				reward -= 100;
+			}
+			else if (log.getDeadUnitID() == targetID)
+			{
+				reward += 100;
+			}
+		}
+	}
+	
+	public double getReward()
+	{
+		return reward;
 	}
 	
 	public Action getAction(StateView s, HistoryView log, int playerNum)
@@ -127,6 +170,7 @@ public class LearningUnit {
 			e[i] = beta*e[i] + chosenF - sumF;
 		}
 		
+		currentAction = chosenAction;
 		return chosenAction;
 	}
 	
