@@ -1,8 +1,10 @@
 package edu.cwru.sepia.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import edu.cwru.sepia.action.Action;
 import edu.cwru.sepia.action.TargetedAction;
@@ -54,7 +56,7 @@ public class LearningUnit {
 		
 		e = new double[features.size()];
 		
-		temperature = 10;
+		temperature = 1000;
 	}
 	
 	public void updateWeights()
@@ -116,13 +118,11 @@ public class LearningUnit {
 	
 	public void resetE()
 	{
-		e = new double[features.size()];
+		//e = new double[features.size()];
 	}
 	
-	public Action getAction(StateView s, HistoryView log, int playerNum, boolean learning)
+	public List<Tuple<TargetedAction, Double>> getActions(StateView s, HistoryView h, int playerNum)
 	{
-		TargetedAction chosenAction = null;
-		
 		List<Tuple<TargetedAction,Double>> actions = new LinkedList<Tuple<TargetedAction,Double>>();
 		double valueSum = 0;
 		for (Integer i:s.getPlayerNumbers())
@@ -131,29 +131,28 @@ public class LearningUnit {
 			{
 				for(UnitView enemy:s.getUnits(i))
 				{
-					if (enemy.getHP() != 0)
-					{
-						TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
-						double j = 0;
-						if (learning)
-						{
-							j = Math.exp((calcJ(s, log, act, playerNum)/temperature));
-						}
-						else
-						{
-							j = Math.exp((calcJ(s, log, act, playerNum)/0.01));		//always select optimal action
-						}
-						Tuple<TargetedAction, Double> actValue = new Tuple<TargetedAction, Double>(act,j);
-						actions.add(actValue);
-						valueSum += j;
-					}
+					TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
+					double j = Math.exp((calcJ(s, h, act, playerNum)/temperature));
+					Tuple<TargetedAction, Double> actValue = new Tuple<TargetedAction, Double>(act,j);
+					actions.add(actValue);
+					valueSum += j;
 				}
 			}
 		}
+
 		for (Tuple<TargetedAction, Double> t:actions)
 		{
 			t.second = t.second/valueSum;
 		}
+
+		return actions;
+	}
+	
+	public Action getAction(StateView s, HistoryView log, int playerNum, boolean learning)
+	{
+		TargetedAction chosenAction = null;
+		
+		List<Tuple<TargetedAction, Double>> actions = getActions(s, log, playerNum);
 		
 		double rand = Math.random();
 		
@@ -211,11 +210,18 @@ public class LearningUnit {
 		return j;
 	}
 	
-	public List<Tuple<TargetedAction, Double>> calcJTable(StateView s, HistoryView log, int playerNum)
+	public JMap calcJMap(StateView s, HistoryView log, int playerNum)
 	{
-		List<Tuple<TargetedAction, Double>> jTable = new ArrayList<Tuple<TargetedAction, Double>>();
-		
-		return jTable;
+		Map<ActionCombination, Double> jmap = new HashMap<ActionCombination, Double>();
+
+		List<Tuple<TargetedAction, Double>> actions = getActions(s, log, playerNum);
+		for(Tuple<TargetedAction, Double> action : actions)
+		{
+			ActionCombination ac = new ActionCombination(new Tuple<Integer, TargetedAction>(unitId, action.first));
+			jmap.put(ac, action.second);
+		}
+
+		return new JMap(jmap);
 	}
 
 	//ranking of the enemy being attacked in terms of how close the enemy is
@@ -229,6 +235,12 @@ public class LearningUnit {
 			UnitView target = s.getUnit(targetID);
 			int currentID = a.getUnitId();
 			UnitView current = s.getUnit(currentID);
+			
+			if (target == null || current == null)
+			{
+				return 0;
+			}
+			
 			int targetDistance = distance(current.getXPosition(), current.getYPosition(), target.getXPosition(), target.getYPosition());
 			int rank = 1;
 			
@@ -295,6 +307,12 @@ public class LearningUnit {
 		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum) 
 		{
 			UnitView target = s.getUnit(a.getTargetId());
+			
+			if (target == null)
+			{
+				return 0;
+			}
+			
 			if (target.getTemplateView().getName().equals("ScoutTower"))
 				return 1;
 			else
@@ -311,6 +329,12 @@ public class LearningUnit {
 		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum) 
 		{
 			UnitView current = s.getUnit(a.getUnitId());
+			
+			if (current == null)
+			{
+				return 0;
+			}
+			
 			int currentX = current.getXPosition();
 			int currentY = current.getYPosition();
 			
@@ -352,6 +376,12 @@ public class LearningUnit {
 		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum) 
 		{
 			UnitView enemy = s.getUnit(a.getTargetId());
+			
+			if (enemy == null)
+			{
+				return 0;
+			}
+			
 			TargetedAction act = (TargetedAction) enemy.getCurrentDurativeAction();
 			
 			if (act != null)
@@ -375,6 +405,11 @@ public class LearningUnit {
 			UnitView current = s.getUnit(a.getUnitId());
 			UnitView enemy = s.getUnit(a.getTargetId());
 			
+			if (current == null || enemy == null)
+			{
+				return 0;
+			}
+			
 			if (enemy.getHP() == 0)
 			{
 				return 1;
@@ -393,6 +428,12 @@ public class LearningUnit {
 		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum) 
 		{
 			UnitView current = s.getUnit(a.getUnitId());
+			
+			if (current == null)
+			{
+				return 0;
+			}
+			
 			int currentX = current.getXPosition();
 			int currentY = current.getYPosition();
 			
@@ -425,8 +466,15 @@ public class LearningUnit {
 		@Override
 		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum)
 		{
-			int x = s.getUnit(a.getTargetId()).getXPosition();
-			int y = s.getUnit(a.getTargetId()).getYPosition();
+			UnitView currentEnemy = s.getUnit(a.getTargetId());
+			
+			if (currentEnemy == null)
+			{
+				return 0;
+			}
+			
+			int x = currentEnemy.getXPosition();
+			int y = currentEnemy.getYPosition();
 			
 			for (Integer i:s.getPlayerNumbers())
 			{
@@ -438,7 +486,12 @@ public class LearningUnit {
 						{
 							int range = enemy.getTemplateView().getRange();
 							int dist = distance(x,y,enemy.getXPosition(),enemy.getYPosition());
-							if (dist + s.getUnit(a.getUnitId()).getTemplateView().getRange() <= range + 1)
+							UnitView current = s.getUnit(a.getUnitId());
+							if (current == null)
+							{
+								return 0;
+							}
+							if (dist + current.getTemplateView().getRange() <= range + 1)
 							{
 								return 1;
 							}
