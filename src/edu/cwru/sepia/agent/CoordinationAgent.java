@@ -70,7 +70,7 @@ public class CoordinationAgent extends Agent {
 		// execute the policy
 		for(Integer unitId : units.keySet())
 		{
-			actions.put(unitId, units.get(unitId).getAction(newstate, statehistory, playernum));
+			actions.put(unitId, units.get(unitId).getAction(newstate, statehistory, playernum, true));
 		}
 		// check if this is a learning episode or not
 		return actions;
@@ -100,7 +100,7 @@ public class CoordinationAgent extends Agent {
 				LearningUnit currUnit = units.get(unitId); // get the associated learning agent
 				if(currUnit != null) 
 				{
-					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum)); // get an action for that unit
+					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum, true)); // get an action for that unit
 			
 				}
 			}

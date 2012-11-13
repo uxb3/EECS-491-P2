@@ -44,6 +44,7 @@ public class LearningUnit {
 		features.add(new IsEnemyAttackingMe());
 		features.add(new HitPointsRatio());
 		features.add(new ClosestBallistaDistance());
+		features.add(new EnemyInTowerRange());
 		
 		weights = new double[features.size() + 1];
 		for (int i = 0; i < weights.length; i++)
@@ -62,6 +63,7 @@ public class LearningUnit {
 		for (int i = 0; i < e.length; i++)
 		{
 			weights[i] += alpha * (reward-0.1) * e[i];
+			continue;
 		}
 		reward = 0;
 	}
@@ -112,7 +114,12 @@ public class LearningUnit {
 		reward = 0;
 	}
 	
-	public Action getAction(StateView s, HistoryView log, int playerNum)
+	public void resetE()
+	{
+		e = new double[features.size()];
+	}
+	
+	public Action getAction(StateView s, HistoryView log, int playerNum, boolean learning)
 	{
 		TargetedAction chosenAction = null;
 		
@@ -124,11 +131,22 @@ public class LearningUnit {
 			{
 				for(UnitView enemy:s.getUnits(i))
 				{
-					TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
-					double j = Math.exp((calcJ(s, log, act, playerNum)/temperature));
-					Tuple<TargetedAction, Double> actValue = new Tuple<TargetedAction, Double>(act,j);
-					actions.add(actValue);
-					valueSum += j;
+					if (enemy.getHP() != 0)
+					{
+						TargetedAction act = (TargetedAction) TargetedAction.createCompoundAttack(unitId, enemy.getID());
+						double j = 0;
+						if (learning)
+						{
+							j = Math.exp((calcJ(s, log, act, playerNum)/temperature));
+						}
+						else
+						{
+							j = Math.exp((calcJ(s, log, act, playerNum)/0.01));		//always select optimal action
+						}
+						Tuple<TargetedAction, Double> actValue = new Tuple<TargetedAction, Double>(act,j);
+						actions.add(actValue);
+						valueSum += j;
+					}
 				}
 			}
 		}
@@ -156,26 +174,28 @@ public class LearningUnit {
 		{
 			chosenAction = actions.get(actions.size()-1).first;
 		}
-		
-		for (int i = 0; i < features.size(); i++)
+		if (learning)
 		{
-			double chosenF = 0;
-			double sumF = 0;
-			
-			for (Tuple<TargetedAction, Double> t:actions)
+			for (int i = 0; i < features.size(); i++)
 			{
-				double F = features.get(i).calculate(s, log, t.first, playerNum);
-				if (t.first == chosenAction)
+				double chosenF = 0;
+				double sumF = 0;
+				
+				for (Tuple<TargetedAction, Double> t:actions)
 				{
-					chosenF = F;
+					double F = features.get(i).calculate(s, log, t.first, playerNum);
+					if (t.first == chosenAction)
+					{
+						chosenF = F;
+					}
+					sumF += t.second*F;
 				}
-				sumF += t.second*F;
+				
+				e[i] = beta*e[i] + chosenF - sumF;
 			}
-			
-			e[i] = beta*e[i] + chosenF - sumF;
+
+			temperature *= .997;
 		}
-		
-		temperature *= .9;
 		currentAction = chosenAction;
 		return chosenAction;
 	}
@@ -302,7 +322,7 @@ public class LearningUnit {
 				{
 					for(UnitView enemy:s.getUnits(i))
 					{
-						if (enemy.getTemplateView().getName().equals("ScoutTower"));
+						if (enemy.getTemplateView().getName().equals("ScoutTower"))
 						{
 							int dist = distance(currentX, currentY, enemy.getXPosition(), enemy.getYPosition());
 							if (dist < minDist)
@@ -355,6 +375,11 @@ public class LearningUnit {
 			UnitView current = s.getUnit(a.getUnitId());
 			UnitView enemy = s.getUnit(a.getTargetId());
 			
+			if (enemy.getHP() == 0)
+			{
+				return 1;
+			}
+			
 			return ((double)current.getHP())/enemy.getHP();
 		}
 		
@@ -393,6 +418,41 @@ public class LearningUnit {
 			return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
 		}
 		
+	}
+	
+	private static class EnemyInTowerRange implements Feature
+	{
+		@Override
+		public double calculate(StateView s, HistoryView log, TargetedAction a, int playerNum)
+		{
+			int x = s.getUnit(a.getTargetId()).getXPosition();
+			int y = s.getUnit(a.getTargetId()).getYPosition();
+			
+			for (Integer i:s.getPlayerNumbers())
+			{
+				if (i != playerNum)
+				{
+					for(UnitView enemy:s.getUnits(i))
+					{
+						if (enemy.getTemplateView().getName().equals("ScoutTower"))
+						{
+							int range = enemy.getTemplateView().getRange();
+							int dist = distance(x,y,enemy.getXPosition(),enemy.getYPosition());
+							if (dist + s.getUnit(a.getUnitId()).getTemplateView().getRange() <= range + 1)
+							{
+								return 1;
+							}
+						}
+					}
+				}
+			}
+			return 0;
+		}
+		
+		private int distance(int x1, int y1, int x2, int y2)
+		{
+			return Math.max(Math.abs(x1-x2), Math.abs(y1-y2));
+		}
 	}
 
 	

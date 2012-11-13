@@ -70,7 +70,8 @@ public class PolicyAgent extends Agent {
 		// execute the policy
 		for(Integer unitId : units.keySet())
 		{
-			actions.put(unitId, units.get(unitId).getAction(newstate, statehistory, playernum));
+			units.get(unitId).resetE();
+			actions.put(unitId, units.get(unitId).getAction(newstate, statehistory, playernum, true));
 		}
 		// check if this is a learning episode or not
 		return actions;
@@ -105,7 +106,10 @@ public class PolicyAgent extends Agent {
 
 				if(currUnit != null) 
 				{
-					actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum)); // get an action for that unit
+					if(frozenGameCount >= cumRewards.length)
+						actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum, true)); // get an action for that unit
+					else
+						actions.put(currUnit.unitId, currUnit.getAction(newstate, statehistory, playernum, false));
 			
 				}
 			}
